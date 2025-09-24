@@ -7,25 +7,38 @@ export interface InstagramUser {
 
 export interface InstagramProfile {
   username: string;
-  fullName: string;
-  profilePicture: string;
+  full_name: string;
+  profile_pic_url: string;
   followers: number;
   following: number;
-  posts: number;
-  biography?: string;
-  isVerified?: boolean;
+  posts_count: number;
+  bio?: string;
 }
 
 export interface InstagramPost {
-  id: string;
-  imageUrl: string;
+  media_type: 'image' | 'video';
+  media_url: string;
   caption: string;
   likes: number;
   comments: number;
-  timestamp: string;
+  ai_description?: string;
 }
 
+// Backend response format
 export interface InstagramProfileResponse {
+  username: string;
+  full_name: string;
+  followers: number;
+  following: number;
+  posts_count: number;
+  bio?: string;
+  profile_pic_url: string;
+  posts: InstagramPost[];
+  error?: string; // For error handling
+}
+
+// Frontend-formatted data for easier consumption
+export interface FormattedInstagramProfile {
   profile: InstagramProfile;
   posts: InstagramPost[];
 }

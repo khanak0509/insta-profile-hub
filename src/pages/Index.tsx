@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { InstagramUser, InstagramProfileResponse } from '@/types/instagram';
+import { InstagramUser, FormattedInstagramProfile } from '@/types/instagram';
 import { getInstagramUsers, getInstagramProfile } from '@/services/api';
 import { UserTable } from '@/components/UserTable';
 import { ProfileCard } from '@/components/ProfileCard';
@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [users, setUsers] = useState<InstagramUser[]>([]);
-  const [selectedProfile, setSelectedProfile] = useState<InstagramProfileResponse | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<FormattedInstagramProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +76,7 @@ const Index = () => {
               <Instagram className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-instagram bg-clip-text text-transparent">
-              Instagram Explorer
+              Insta Profile Hub
             </h1>
           </div>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">

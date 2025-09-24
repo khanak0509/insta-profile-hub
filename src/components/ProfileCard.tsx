@@ -1,7 +1,7 @@
 import { InstagramProfile } from '@/types/instagram';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, UserPlus, Image, Shield, ArrowLeft } from 'lucide-react';
+import { Users, UserPlus, Image, ArrowLeft, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ProfileCardProps {
@@ -20,6 +20,19 @@ export const ProfileCard = ({ profile, onBack }: ProfileCardProps) => {
     return count.toString();
   };
 
+  // Safety check for profile data
+  if (!profile) {
+    return (
+      <Card className="p-8 text-center">
+        <div className="text-muted-foreground">
+          <div className="text-6xl mb-4">⏳</div>
+          <h3 className="text-lg font-medium mb-2">Loading profile...</h3>
+          <p className="text-sm">Please wait while we fetch the profile data.</p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="overflow-hidden shadow-large">
       <div className="bg-gradient-instagram p-1">
@@ -34,34 +47,43 @@ export const ProfileCard = ({ profile, onBack }: ProfileCardProps) => {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Users
               </Button>
-              {profile.isVerified && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
-                  Verified
-                </Badge>
-              )}
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                Instagram Profile
+              </Badge>
             </div>
 
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <div className="relative">
                 <div className="p-1 bg-gradient-instagram rounded-full">
-                  <img
-                    src={profile.profilePicture}
-                    alt={`${profile.username}'s profile`}
-                    className="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover border-4 border-background"
-                  />
+                  {profile.profile_pic_url ? (
+                    <img
+                      src={profile.profile_pic_url}
+                      alt={`${profile.username}'s profile`}
+                      className="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover border-4 border-background"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.src = `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=faces`;
+                      }}
+                    />
+                  ) : (
+                    <div className="h-24 w-24 md:h-32 md:w-32 rounded-full bg-muted border-4 border-background flex items-center justify-center">
+                      <User className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="flex-1 text-center md:text-left">
                 <div className="mb-4">
                   <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
-                    {profile.fullName}
+                    {profile.full_name || profile.username}
                   </h1>
                   <p className="text-lg text-primary font-medium">@{profile.username}</p>
-                  {profile.biography && (
-                    <p className="text-muted-foreground mt-2 max-w-md">
-                      {profile.biography}
+                  {profile.bio && (
+                    <p className="text-muted-foreground mt-2 max-w-md break-words">
+                      {profile.bio}
                     </p>
                   )}
                 </div>
@@ -85,7 +107,7 @@ export const ProfileCard = ({ profile, onBack }: ProfileCardProps) => {
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-foreground">
-                        {formatNumber(profile?.following)}
+                        {formatNumber(profile.following)}
                       </div>
                       <div className="text-sm text-muted-foreground">Following</div>
                     </div>
@@ -97,7 +119,7 @@ export const ProfileCard = ({ profile, onBack }: ProfileCardProps) => {
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-foreground">
-                        {formatNumber(profile?.posts)}
+                        {formatNumber(profile.posts_count)}
                       </div>
                       <div className="text-sm text-muted-foreground">Posts</div>
                     </div>

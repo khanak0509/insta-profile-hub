@@ -1,15 +1,18 @@
 import axios from 'axios';
-import { InstagramUser, InstagramProfileResponse } from '@/types/instagram';
+import { InstagramUser, InstagramProfileResponse, FormattedInstagramProfile } from '@/types/instagram';
 
-// Mock data for demonstration - replace with your actual API base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// API base URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // Increase timeout for scraping operations
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// Mock data for demonstration purposes
+// Mock data for user list (since backend only has individual profile endpoint)
 const mockUsers: InstagramUser[] = [
   { id: '1', username: 'cristiano', fullName: 'Cristiano Ronaldo', followers: 543000000 },
   { id: '2', username: 'kyliejenner', fullName: 'Kylie Jenner', followers: 398000000 },
@@ -23,12 +26,9 @@ const mockUsers: InstagramUser[] = [
 
 export const getInstagramUsers = async (): Promise<InstagramUser[]> => {
   try {
-    // Replace this with actual API call when backend is ready
-    // const response = await api.get('/api/instagram/users');
-    // return response.data;
-    
-    // Mock API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // For now, return mock users since backend doesn't have a users list endpoint
+    // You can extend the backend to include a popular users endpoint later
+    await new Promise(resolve => setTimeout(resolve, 500));
     return mockUsers;
   } catch (error) {
     console.error('Error fetching Instagram users:', error);
@@ -36,38 +36,48 @@ export const getInstagramUsers = async (): Promise<InstagramUser[]> => {
   }
 };
 
-export const getInstagramProfile = async (username: string): Promise<InstagramProfileResponse> => {
+export const getInstagramProfile = async (username: string): Promise<FormattedInstagramProfile> => {
   try {
-    // Replace this with actual API call to your backend
-    const response = await api.get(`/api/instagram/${username}`);
-    return response.data;
+    console.log(`Fetching profile for ${username} from ${API_BASE_URL}/instagram`);
+    
+    const response = await api.post('/instagram', { username });
+    console.log(`Response for ${username}:`, response.data);
+    const data: InstagramProfileResponse = response.data;
+    
+    if (!data || data.error) {
+      throw new Error(data.error || 'Failed to fetch profile data');
+    }
+
+    // Format the response to match frontend expectations
+    const formattedProfile: FormattedInstagramProfile = {
+      profile: {
+        username: data.username,
+        full_name: data.full_name,
+        profile_pic_url: data.profile_pic_url,
+        followers: data.followers,
+        following: data.following,
+        posts_count: data.posts_count,
+        bio: data.bio,
+      },
+      posts: data.posts,
+    };
+
+    return formattedProfile;
   } catch (error) {
     console.error(`Error fetching profile for ${username}:`, error);
     
-    // Mock response for demonstration - remove when backend is ready
-    const mockProfile: InstagramProfileResponse = {
-      profile: {
-        username,
-        fullName: mockUsers.find(u => u.username === username)?.fullName || 'Unknown User',
-        profilePicture: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=faces`,
-        followers: mockUsers.find(u => u.username === username)?.followers || 0,
-        following: Math.floor(Math.random() * 1000) + 100,
-        posts: Math.floor(Math.random() * 500) + 50,
-        biography: `Official account of ${mockUsers.find(u => u.username === username)?.fullName}`,
-        isVerified: true,
-      },
-      posts: Array.from({ length: 12 }, (_, i) => ({
-        id: `${username}_post_${i}`,
-        imageUrl: `https://images.unsplash.com/photo-${1500000000000 + i}?w=400&h=400&fit=crop`,
-        caption: `Amazing moment captured! #${username} #instagram #life ${i + 1}`,
-        likes: Math.floor(Math.random() * 100000) + 1000,
-        comments: Math.floor(Math.random() * 5000) + 100,
-        timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-      })),
-    };
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNREFUSED' || error.code === 'ECONNRESET') {
+        throw new Error('Backend server is not running. Please start the FastAPI server on port 8000.');
+      }
+      if (error.response?.status === 404) {
+        throw new Error(`User @${username} not found or profile is private.`);
+      }
+      if (error.response?.status >= 500) {
+        throw new Error('Instagram server error. Please try again later.');
+      }
+    }
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    return mockProfile;
+    throw new Error(`Failed to fetch profile for @${username}. Please try again.`);
   }
 };
