@@ -85,7 +85,7 @@ export const ProfileCard = ({ profile, onBack }: ProfileCardProps) => {
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-foreground">
-                        {formatNumber(profile.following)}
+                        {formatNumber(profile?.following)}
                       </div>
                       <div className="text-sm text-muted-foreground">Following</div>
                     </div>
@@ -97,7 +97,7 @@ export const ProfileCard = ({ profile, onBack }: ProfileCardProps) => {
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-foreground">
-                        {formatNumber(profile.posts)}
+                        {formatNumber(profile?.posts)}
                       </div>
                       <div className="text-sm text-muted-foreground">Posts</div>
                     </div>
